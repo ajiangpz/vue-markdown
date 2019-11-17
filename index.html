@@ -11,7 +11,13 @@
   <body>
     <div id="notebook">
       <aside class="noteList">
-        <button id="addNode" @click="addNode">新增笔记</button>
+        <div class="aside-header">
+          <span class="aside-title">笔记列表</span>
+            <svg aria-hidden="true" @click="addNode" class="btn-add">
+              <use xlink:href="#icon-add"></use>
+            </svg>
+        </div>
+
         <div
           v-for="note in sortedNotes"
           class="note-item"
@@ -28,7 +34,7 @@
         <template v-if="selectedNote">
           <div class="content">
             <div class="toolbox">
-              <input type="text" v-model="selectedNote.title" />
+              <input type="text" v-model="selectedNote.title" class="note-title" />
               <svg class="icon" aria-hidden="true" @click="removeNote">
                 <use xlink:href="#icon-shanchu"></use>
               </svg>
@@ -49,13 +55,14 @@
                 <use xlink:href="#icon-shoucang1"></use>
               </svg>
             </div>
+
             <textarea v-model="selectedNote.content"></textarea>
-            <div class="toolbar status-bar">
-              <span>创建日期：</span>
+            <div class=" status-bar">
+              <span>创建日期 </span>
               <span>{{selectedNote.created|date}}</span>
-              <span>行数：</span>
+              <span>行数</span>
               <span>{{linesCount}}</span>
-              <span>字数：</span>
+              <span>字数</span>
               <span>{{charsCount}}</span>
             </div>
           </div>
@@ -65,12 +72,10 @@
       </section>
     </div>
 
-    <script src="https://unpkg.com/vue/dist/vue.js"></script>
-    <script src="https://unpkg.com/marked">
-      {{notePreview}}
-    </script>
-    <script src="https://unpkg.com/moment"></script>
-    <script src="https://at.alicdn.com/t/font_1513492_bv59j25gbl.js"></script>
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+    <script src="https://cdn.bootcss.com/marked/0.7.0/marked.js"></script>
+    <script src="https://cdn.bootcss.com/moment.js/2.24.0/moment.js"></script>
+    <script src="https://at.alicdn.com/t/font_1513492_wp3uklwlp4.js"></script>
     <script>
       Vue.filter("date", time => moment(time).format("YY/MM/DD,HH:mm"));
       new Vue({
@@ -131,29 +136,27 @@
               );
           },
           //返回行数
-          linesCount(){
-            if(this.selectedNote){
-              return this.selectedNote.content.split(/\r\n|\r|\n/).length
-
+          linesCount() {
+            if (this.selectedNote) {
+              return this.selectedNote.content.split(/\r\n|\r|\n/).length;
             }
           },
           //返回字数，中文如何判断
-          wordsCount(){
-            if(this.selectedNote){
-              var s=this.selectedNote.content;
+          wordsCount() {
+            if (this.selectedNote) {
+              var s = this.selectedNote.content;
               //将换行符替换成空格
-              s=s.replace(/\n/g,' ')
+              s = s.replace(/\n/g, " ");
               //排除开头结尾的空格
-              s=s.replace(/(^\s*)|(\s*$)/gi,'')
+              s = s.replace(/(^\s*)|(\s*$)/gi, "");
               //返回空格分隔的字符数量
-              return s.split(' ').length
-              
+              return s.split(" ").length;
             }
           },
           //返回字符数，中文如何判断
-          charsCount(){
-            if(this.selectedNote){
-              return this.selectedNote.content.split('').length
+          charsCount() {
+            if (this.selectedNote) {
+              return this.selectedNote.content.split("").length;
             }
           }
         },
