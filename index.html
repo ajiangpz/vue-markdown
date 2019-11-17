@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="./index.css" />
+
+    <title>vue-markdown</title>
+  </head>
+  <body>
+    <div id="notebook">
+      <aside class="noteList">
+        <button id="addNode" @click="addNode">新增笔记</button>
+        <div
+          v-for="note in sortedNotes"
+          class="note-item"
+          :class="{selected:note===selectedNote}"
+          @click="selectNote(note)"
+        >
+          {{note.title}}
+          <svg class="icon" aria-hidden="true" v-if="note.favorite">
+            <use xlink:href="#icon-shoucang1"></use>
+          </svg>
+        </div>
+      </aside>
+      <section class="main">
+        <template v-if="selectedNote">
+          <div class="content">
+            <div class="toolbox">
+              <input type="text" v-model="selectedNote.title" />
+              <svg class="icon" aria-hidden="true" @click="removeNote">
+                <use xlink:href="#icon-shanchu"></use>
+              </svg>
+              <svg
+                class="icon"
+                aria-hidden="true"
+                @click="favoriteNote"
+                v-if="!selectedNote.favorite"
+              >
+                <use xlink:href="#icon-shoucang"></use>
+              </svg>
+              <svg
+                class="icon"
+                aria-hidden="true"
+                @click="favoriteNote"
+                v-if="selectedNote.favorite"
+              >
+                <use xlink:href="#icon-shoucang1"></use>
+              </svg>
+            </div>
+            <textarea v-model="selectedNote.content"></textarea>
+            <div class="toolbar status-bar">
+              <span>创建日期：</span>
+              <span>{{selectedNote.created|date}}</span>
+              <span>行数：</span>
+              <span>{{linesCount}}</span>
+              <span>字数：</span>
+              <span>{{charsCount}}</span>
+            </div>
+          </div>
+
+          <div class="preview" v-html="notePreview"></div>
+        </template>
+      </section>
+    </div>
+
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/marked">
+      {{notePreview}}
+    </script>
+    <script src="https://unpkg.com/moment"></script>
+    <script src="https://at.alicdn.com/t/font_1513492_bv59j25gbl.js"></script>
+    <script>
+      Vue.filter("date", time => moment(time).format("YY/MM/DD,HH:mm"));
+      new Vue({
+        el: "#notebook",
+        data() {
+          return {
+            notes: JSON.parse(localStorage.getItem("notes") || "[]"),
+            selectedId: null
+          };
+        },
+        methods: {
+          //添加笔记
+          addNode() {
+            const time = Date.now();
+            const note = {
+              id: String(time),
+              title: `笔记${this.notes.length + 1}`,
+              content: `# 这是默认笔记内容哦！`,
+              created: time,
+              favorite: false
+            };
+            this.notes.push(note);
+          },
+          //选中当前笔记
+          selectNote(note) {
+            this.selectedId = note.id;
+          },
+          //保存笔记
+          saveNotes() {
+            localStorage.setItem("notes", JSON.stringify(this.notes));
+            console.log(`保存成功 ${new Date().toLocaleTimeString()}`);
+          },
+          //删除笔记
+          removeNote() {
+            this.notes.splice(this.notes.indexOf(this.selectedNote), 1);
+          },
+          //收藏笔记
+          favoriteNote() {
+            this.selectedNote.favorite ^= true;
+          }
+        },
+        computed: {
+          //计算属性，返回处理后的数据
+          notePreview() {
+            return marked(this.selectedNote.content);
+          },
+          //返回当前选中笔记的数据
+          selectedNote() {
+            return this.notes.find(note => note.id === this.selectedId);
+          },
+          //返回排序后的notes
+          sortedNotes() {
+            return this.notes
+              .slice()
+              .sort((a, b) => a.created - b.created)
+              .sort((a, b) =>
+                a.favorite === b.favorite ? 0 : a.favorite ? -1 : 1
+              );
+          },
+          //返回行数
+          linesCount(){
+            if(this.selectedNote){
+              return this.selectedNote.content.split(/\r\n|\r|\n/).length
+
+            }
+          },
+          //返回字数，中文如何判断
+          wordsCount(){
+            if(this.selectedNote){
+              var s=this.selectedNote.content;
+              //将换行符替换成空格
+              s=s.replace(/\n/g,' ')
+              //排除开头结尾的空格
+              s=s.replace(/(^\s*)|(\s*$)/gi,'')
+              //返回空格分隔的字符数量
+              return s.split(' ').length
+              
+            }
+          },
+          //返回字符数，中文如何判断
+          charsCount(){
+            if(this.selectedNote){
+              return this.selectedNote.content.split('').length
+            }
+          }
+        },
+        watch: {
+          //监听输入数据的变化
+          notes: {
+            //处理函数
+            handler: "saveNotes",
+            deep: true
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
